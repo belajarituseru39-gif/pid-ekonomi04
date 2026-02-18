@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Petualangan Ekonomi Nusantara</title>
+    <style>
+        /* --- GAYA VISUAL (CSS) --- */
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+
+        :root {
+            --primary: #FBC02D;
+            --secondary: #388E3C;
+            --accent: #E64A19;
+            --text-dark: #263238;
+            --glass-white: rgba(255, 255, 255, 0.96);
+            --glass-panel: rgba(255, 255, 255, 0.25);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: url('https://iili.io/q2zEd37.png') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0; padding: 0; overflow: hidden;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+            user-select: none; touch-action: none;
+        }
+
+        /* Container Utama */
+        #game-container {
+            width: 98%;
+            max-width: 1300px;
+            height: 98vh;
+            background: var(--glass-panel);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Header */
+        header {
+            background: rgba(251, 192, 45, 0.98);
+            color: #fff;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            height: 65px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        #level-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .header-controls { display: flex; align-items: center; gap: 10px; }
+
+        .score-display {
+            background: rgba(0,0,0,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Area Konten Utama */
+        #content-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Scrollable Wrapper */
+        #play-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            justify-content: flex-start; 
+            scrollbar-width: thin;
+        }
+        #play-wrapper::-webkit-scrollbar { width: 8px; }
+        #play-wrapper::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+        .spacer-bottom { height: 40px; flex-shrink: 0; width: 100%; }
+
+        /* Tombol & UI */
+        .btn {
+            background: var(--accent); color: white; border: none;
+            padding: 12px 25px; font-size: 1.1rem; border-radius: 50px;
+            cursor: pointer; font-family: 'Fredoka One', cursive; transition: all 0.2s;
+            box-shadow: 0 4px 0 #BF360C; margin: 5px;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+        }
+        .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #BF360C; }
+        .btn-green { background: var(--secondary); box-shadow: 0 4px 0 #1B5E20; }
+        .btn-blue { background: #0288D1; box-shadow: 0 4px 0 #01579B; }
+
+        .btn-home {
+            background: rgba(255,255,255,0.25); border: 2px solid white;
+            border-radius: 12px; padding: 5px 12px; font-size: 1.2rem;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
+            color: white; transition: 0.2s; margin-right: 10px;
+        }
+        .btn-home:hover { background: rgba(255,255,255,0.4); transform: scale(1.05); }
+
+        .btn-icon {
+            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.8);
+            border-radius: 50%; width: 35px; height: 35px; font-size: 1rem;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
+            color: white; transition: 0.2s;
+        }
+        .btn-icon:hover { background: rgba(255,255,255,0.4); transform: scale(1.1); }
+
+        /* --- TAMPILAN DEPAN --- */
+        .home-layout {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .logo-img {
+            max-height: 25vh; width: auto; max-width: 60%;
+            margin-bottom: 15px; filter: drop-shadow(0 8px 15px rgba(0,0,0,0.2));
+            animation: float 4s ease-in-out infinite;
+        }
+        .intro-box {
+            background: var(--glass-white); padding: 15px 25px; border-radius: 20px;
+            max-width: 700px; width: 90%; margin-bottom: 15px;
+            border: 3px dashed var(--primary); color: var(--text-dark);
+            text-align: center; font-weight: 600; line-height: 1.4; font-size: 0.95rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+
+        /* PETA */
+        .map-container { width: 100%; height: 100%; background: url('https://iili.io/q2zQZjn.png') no-repeat center center; background-size: cover; position: relative; }
+        .mission-pin {
+            position: absolute; width: 55px; height: 55px;
+            background: white; border-radius: 50%; border: 3px solid #ccc;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: 0.3s; font-family: 'Fredoka One', cursive;
+            font-size: 1.3rem; transform: translate(-50%, -50%); color: #555;
+        }
+        .mission-pin.unlocked { border-color: var(--primary); background: #FFF9C4; color: var(--accent); animation: pulse 2s infinite; }
+        .mission-pin.completed { background: var(--secondary); border-color: white; color: white; animation: none; }
+        .mission-pin.locked { filter: grayscale(100%); opacity: 0.6; pointer-events: none; }
+        .pin-label { 
+            position: absolute; bottom: -28px; left: 50%; transform: translateX(-50%); 
+            background: white; padding: 2px 8px; border-radius: 8px; 
+            font-size: 0.75rem; font-weight: bold; color: #333; white-space: nowrap; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(251, 192, 45, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(251, 192, 45, 0); } 100% { box-shadow: 0 0 0 0 rgba(251, 192, 45, 0); } }
+
+        /* GAMEPLAY ELEMENTS */
+        .game-instruction {
+            font-size: 1.1rem; text-align: center; margin: 0 0 20px 0;
+            font-weight: bold; background: var(--glass-white);
+            padding: 10px 20px; border-radius: 15px; border: 3px solid var(--primary);
+            width: 95%; max-width: 700px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .card-item {
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1); border: 2px solid var(--primary);
+            font-size: 1.3rem; font-weight: bold; text-align: center;
+            width: 95%; max-width: 500px; margin-bottom: 20px; color: var(--text-dark);
+        }
+
+        /* Misi 1 Buckets */
+        .buckets-container { display: flex; gap: 15px; width: 100%; max-width: 900px; justify-content: center; align-items: flex-end; margin-top: auto; min-height: 200px; flex-wrap: wrap; }
+        .bucket { flex: 1; min-width: 140px; max-width: 200px; height: 180px; border: 4px solid rgba(255,255,255,0.9); border-radius: 0 0 20px 20px; border-top: none; background: rgba(255, 255, 255, 0.7); position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 15px; backdrop-filter: blur(5px); transition: 0.2s; }
+        .bucket::before { content: attr(data-label); position: absolute; top: -35px; background: var(--color); color: white; padding: 5px 15px; border-radius: 8px; font-family: 'Fredoka One'; font-size: 0.9rem; width: 100%; text-align: center; border: 2px solid white; box-shadow: 0 3px 5px rgba(0,0,0,0.2); }
+        .bucket.hovered { background: white; transform: scale(1.03) translateY(-5px); }
+        .bucket-icon-img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 5px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.1)); }
+
+        /* Misi 2 & 4 Options Grid */
+        .option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; width: 100%; max-width: 700px; }
+        .option-btn { background: white; border: 2px solid var(--primary); color: #333; padding: 15px; border-radius: 12px; font-size: 1rem; cursor: pointer; font-weight: bold; transition: 0.2s; box-shadow: 0 3px 0 #ddd; display: flex; align-items: center; justify-content: center; }
+        .option-btn:hover { background: #FFFDE7; border-color: var(--accent); }
+        .option-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        /* Misi 5 Drag Drop */
+        .dnd-container { display: flex; width: 100%; gap: 20px; justify-content: center; align-items: flex-start; flex-wrap: wrap; }
+        .dnd-col { display: flex; flex-direction: column; gap: 12px; width: 45%; min-width: 280px; }
+        .drop-zone { width: 100%; min-height: 70px; background: rgba(255, 255, 255, 0.85); border: 2px dashed #888; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; color: #444; }
+        .drop-zone.filled { border-style: solid; border-color: var(--secondary); background: #E8F5E9; }
+        .pair-draggable { width: 100%; padding: 12px; background: #FFF; border: 2px solid var(--accent); border-radius: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; cursor: grab; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+
+        /* Input & Form */
+        .name-input { padding: 12px; font-size: 1.1rem; border-radius: 10px; border: 2px solid var(--primary); width: 100%; max-width: 350px; text-align: center; margin: 10px auto; font-family: inherit; font-weight: bold; display: block; }
+        .report-card { background: var(--glass-white); padding: 20px; border-radius: 20px; width: 95%; max-width: 650px; border: 3px solid var(--primary); }
+        .report-row { margin-bottom: 12px; text-align: left; }
+        .report-label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 0.9rem; }
+        .report-select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #aaa; font-size: 1rem; }
+
+        /* Modal */
+        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 500; backdrop-filter: blur(8px); }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 600px; width: 90%; border-top: 8px solid var(--primary); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .reflection-textarea { width: 100%; height: 100px; padding: 10px; margin: 15px 0; border: 2px solid #ccc; border-radius: 10px; font-family: inherit; font-size: 1rem; }
+
+        /* Certificate */
+        .cert-box { background: white; padding: 30px; border-radius: 15px; border: 10px double var(--primary); max-width: 700px; width: 95%; text-align: center; margin: 10px auto; }
+        .cert-score { background: #f5f5f5; padding: 15px; border-radius: 10px; margin: 15px auto; width: 85%; border: 1px solid #ddd; }
+
+        footer { background: rgba(255,255,255,0.7); text-align: center; padding: 5px; font-size: 0.75rem; color: #333; font-weight: bold; flex-shrink: 0; backdrop-filter: blur(5px); }
+        
+        .badges-display { display: flex; gap: 5px; }
+        .badge-slot { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #fff; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.5); overflow: hidden; }
+        .badge-img-small { width: 100%; height: 100%; object-fit: cover; }
+        .grayscale { filter: grayscale(100%); opacity: 0.5; }
+        .dragging { opacity: 0.8; z-index: 2000; transform: scale(1.05); }
+        
+        #loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; display:none; justify-content:center; align-items:center; color:white; font-family:'Fredoka One'; font-size:1.5rem; flex-direction:column; }
+    </style>
+</head>
+<body>
+
+<!-- SETUP GOOGLE SHEETS URL DISINI -->
+<script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwLHoKwheElpN_-VvDYj9M5tX0hnxgBcmpR-Mfo01cYZ7pNUwvJaGDNqwMJAIj-N8T8g/exec"; 
+</script>
+
+<div id="game-container">
+    <header>
+        <div style="display: flex; align-items: center;">
+            <button class="btn-home" onclick="confirmHome()" title="Menu Utama">🏠</button>
+            <div id="level-title">Menu Utama</div>
+        </div>
+        <div class="header-controls">
+            <div class="score-display">Poin: <span id="current-score">0</span></div>
+            <button id="music-btn" class="btn-icon" onclick="toggleMusic()">🔇</button>
+            <button class="btn-icon" onclick="toggleFullScreen()" title="Layar Penuh">⛶</button>
+            <div class="badges-display" id="badges-container"></div>
+        </div>
+    </header>
+    <div id="content-area"></div>
+    <footer>Ide Permainan oleh Abdul Rahmat, S.Pd - SDN 011 Balikpapan Tengah - Kontak: 081351767574</footer>
+</div>
+
+<div id="modal"><div class="modal-box" id="modal-content"></div></div>
+<div id="loading-overlay"><div>Mengirim Nilai...</div></div>
+
+<audio id="bgm" loop src="https://github.com/belajarituseru39-gif/laguekonomi/raw/refs/heads/main/Petualangan%20Ekonomi%20Nusantara%20ala%20Pak%20Rahmat.mp3"></audio>
+
+<script>
+    // --- STATE ---
+    let state = {
+        unlockedLevel: 1, currentLevel: 0, subStep: 0, matchesFound: 0,
+        playerName: "", playerSchool: "",
+        shuffledItems: [], totalCorrect: 0, totalScore: 0, m2_step: 0,
+        isMusicPlaying: false,
+        reflections: {} 
+    };
+
+    const logoUrl = "https://iili.io/q2z0Wlt.png";
+    const missionImages = ["https://iili.io/q2zMdmu.png", "https://iili.io/q2zMuIa.png", "https://iili.io/q2zMzkF.png", "https://iili.io/q2zMx71.png", "https://iili.io/q2zModP.png"];
+    const badgeImages = ["https://iili.io/q2zMqqQ.png", "https://iili.io/q2zMKLx.png", "https://iili.io/q2zGm12.png", "https://iili.io/q2zM9d7.png", "https://iili.io/q2zM3zb.png"];
+
+    const gameData = {
+        misi1: {
+            title: "Misi 1: Gerbang Ekonomi",
+            narrative: "Pahami dasar kegiatan ekonomi: Produksi, Distribusi, dan Konsumsi untuk memulai perjalananmu.",
+            objective: "Aku dapat mengenali 3 jenis kegiatan ekonomi melalui 10 tantangan acak.",
+            items: [
+                { text: "Petani menanam padi di sawah", type: "Produksi" },
+                { text: "Nelayan menjaring ikan di laut", type: "Produksi" },
+                { text: "Pabrik membuat sepatu olahraga", type: "Produksi" },
+                { text: "Ibu memasak nasi untuk dijual", type: "Produksi" },
+                { text: "Kurir logistik mengantar paket", type: "Distribusi" },
+                { text: "Sopir truk membawa sayur ke kota", type: "Distribusi" },
+                { text: "Pedagang menjual sayur di pasar", type: "Distribusi" },
+                { text: "Andi memakan bekal sekolah", type: "Konsumsi" },
+                { text: "Siti memakai seragam baru", type: "Konsumsi" },
+                { text: "Bapak membaca koran di teras", type: "Konsumsi" }
+            ],
+            reflection: "Menurutmu, mengapa kegiatan ekonomi penting bagi kehidupan masyarakat?"
+        },
+        misi2: {
+            title: "Misi 2: Jejak Profesi",
+            narrative: "Setiap profesi memiliki peran penting dalam menghasilkan barang atau jasa.",
+            objective: "Aku dapat mengidentifikasi peran dan hasil produksi (Barang/Jasa) dari 10 profesi.",
+            data: [
+                { name: "Petani", role: "Menanam padi dan menghasilkan pangan", type: "Barang", roleOpts: ["Mengantar paket", "Menanam padi dan menghasilkan pangan", "Mengatur lalu lintas"] },
+                { name: "Nelayan", role: "Menangkap ikan di laut", type: "Barang", roleOpts: ["Menangkap ikan di laut", "Mendidik siswa", "Menjual obat"] },
+                { name: "Peternak", role: "Memelihara hewan ternak sapi/ayam", type: "Barang", roleOpts: ["Memelihara hewan ternak sapi/ayam", "Mengobati sakit", "Membangun rumah"] },
+                { name: "Tukang Cukur", role: "Memotong dan merapikan rambut", type: "Jasa", roleOpts: ["Memotong dan merapikan rambut", "Memanen sayur", "Membuat baju"] },
+                { name: "Guru", role: "Mendidik murid di sekolah", type: "Jasa", roleOpts: ["Mendidik murid di sekolah", "Menjual buku", "Membuat mobil"] },
+                { name: "Dokter", role: "Memeriksa dan mengobati orang sakit", type: "Jasa", roleOpts: ["Memeriksa dan mengobati orang sakit", "Memasak makanan", "Menangkap pencuri"] },
+                { name: "Polisi", role: "Menjaga keamanan masyarakat", type: "Jasa", roleOpts: ["Menjaga keamanan masyarakat", "Membangun rumah", "Memotong rambut"] },
+                { name: "Arsitek", role: "Merancang desain bangunan", type: "Jasa", roleOpts: ["Merancang desain bangunan", "Menanam pohon", "Menjual tiket"] },
+                { name: "Koki", role: "Memasak makanan lezat di restoran", type: "Barang", roleOpts: ["Memasak makanan lezat di restoran", "Mendidik anak", "Memperbaiki mesin"] },
+                { name: "Penjahit", role: "Menjahit kain menjadi pakaian", type: "Barang", roleOpts: ["Menjahit kain menjadi pakaian", "Membeli kain", "Membuang sampah"] }
+            ],
+            reflection: "Pekerjaan apa yang menurutmu paling berjasa di lingkungan rumahmu? Mengapa?"
+        },
+        misi3: {
+            title: "Misi 3: Ekonomi & Alam",
+            narrative: "Kegiatan ekonomi tidak boleh merusak lingkungan demi masa depan.",
+            objective: "Aku memahami hubungan kegiatan ekonomi dan lingkungan melalui analisis kasus.",
+            questions: [
+                { text: "Menggunakan botol plastik sekali pakai setiap hari", isEco: false, reason: "Ini menambah limbah plastik!" },
+                { text: "Membawa tas belanja sendiri dari rumah", isEco: true, reason: "Ini mengurangi sampah kantong plastik." },
+                { text: "Membuang limbah rumah tangga ke sungai", isEco: false, reason: "Ini mencemari air dan ekosistem sungai!" },
+                { text: "Menanam pohon di halaman rumah", isEco: true, reason: "Penghijauan membantu udara tetap bersih." }
+            ],
+            reflection: "Mengapa kegiatan ekonomi harus memperhatikan kelestarian lingkungan? Bagaimana caramu sebagai murid ikut menjaga lingkungan saat berbelanja?"
+        },
+        misi4: {
+            title: "Misi 4: Detektif Sekitar",
+            narrative: "Amati bagaimana kegiatan ekonomi berlangsung di lingkungan terdekat kita.",
+            objective: "Aku dapat mengamati, melaporkan, dan menjawab tantangan kegiatan ekonomi lokal.",
+            observations: [
+                { location: "Kantin Sekolah", scenario: "Ibu Kantin menjual nasi uduk dan jajanan sehat kepada siswa.", questions: [{label:"Jenis Kegiatan",options:["Produksi","Distribusi","Konsumsi"],ans:1}, {label:"Dampak Positif",options:["Siswa mendapat energi belajar","Siswa menjadi mengantuk","Uang jajan siswa hilang"],ans:0}] },
+                { location: "Kebun Sayur Pak Budi", scenario: "Pak Budi memetik sawi dan bayam segar dari lahan miliknya.", questions: [{label:"Jenis Kegiatan",options:["Produksi","Konsumsi","Distribusi"],ans:0}, {label:"Dampak Positif",options:["Penyedia bahan pangan","Mengurangi stok air"],ans:0}] },
+                { location: "Bengkel Motor", scenario: "Montir memperbaiki mesin motor warga agar bisa digunakan kembali.", questions: [{label:"Jenis Kegiatan",options:["Konsumsi","Produksi Jasa","Distribusi"],ans:1}, {label:"Dampak Positif",options:["Transportasi warga lancar","Lalu lintas macet"],ans:0}] },
+                { location: "Kurir Logistik", scenario: "Seorang kurir mengantar paket pesanan dari toko daring ke alamat pembeli.", questions: [{label:"Jenis Kegiatan",options:["Produksi","Distribusi","Konsumsi"],ans:1}, {label:"Dampak Positif",options:["Barang sampai ke pembeli","Bensin cepat habis"],ans:0}] },
+                { location: "Toko Buku", scenario: "Siti membayar buku tulis dan pensil yang akan digunakannya di sekolah.", questions: [{label:"Jenis Kegiatan",options:["Produksi","Distribusi","Konsumsi"],ans:2}, {label:"Dampak Positif",options:["Mendukung kebutuhan belajar","Menghabiskan uang saku"],ans:0}] },
+                { location: "Pabrik Tahu", scenario: "Pengrajin mengolah kacang kedelai menjadi tahu yang lezat.", questions: [{label:"Jenis Kegiatan",options:["Produksi","Konsumsi","Distribusi"],ans:0}, {label:"Dampak Positif",options:["Tersedianya lauk pauk protein","Limbah mencemari lingkungan","Harga kedelai menjadi mahal"],ans:0}] },
+                { location: "Pasar Ikan", scenario: "Para nelayan menjual hasil tangkapannya kepada pembeli di pasar.", questions: [{label:"Jenis Kegiatan",options:["Konsumsi","Produksi","Distribusi"],ans:2}, {label:"Dampak Positif",options:["Masyarakat mudah mendapatkan ikan","Laut menjadi kotor","Ikan di laut habis"],ans:0}] },
+                { location: "Rumah Sakit", scenario: "Dokter sedang memeriksa dan memberikan resep obat kepada pasien.", questions: [{label:"Jenis Kegiatan",options:["Produksi Jasa","Konsumsi","Distribusi"],ans:0}, {label:"Dampak Positif",options:["Pasien mendapatkan kesembuhan","Dokter menjadi kelelahan","Obat di apotek habis"],ans:0}] },
+                { location: "Warung Kelontong", scenario: "Ibu membeli garam dan gula untuk keperluan memasak di dapur.", questions: [{label:"Jenis Kegiatan",options:["Produksi","Distribusi","Konsumsi"],ans:2}, {label:"Dampak Positif",options:["Masakan ibu menjadi enak","Warung menjadi tutup","Uang belanja ibu bertambah"],ans:0}] },
+                { location: "Ojek Online", scenario: "Driver ojek mengantar penumpang dari stasiun ke kantornya.", questions: [{label:"Jenis Kegiatan",options:["Produksi Jasa","Konsumsi","Produksi Barang"],ans:0}, {label:"Dampak Positif",options:["Penumpang cepat sampai tujuan","Jalanan menjadi macet","Bensin motor habis"],ans:0}] }
+            ],
+            quizQuestions: [
+                { q: "Mengapa pasar termasuk tempat penting dalam kegiatan ekonomi?", options: ["Sebagai tempat bermain sepak bola", "Tempat bertemunya penjual dan pembeli", "Gudang penyimpanan barang bekas"], ans: 1 },
+                { q: "Jika tidak ada kegiatan distribusi, apa yang akan terjadi?", options: ["Barang tidak akan sampai ke konsumen", "Harga barang akan menjadi gratis", "Produsen akan semakin kaya"], ans: 0 },
+                { q: "Siapakah yang disebut sebagai konsumen dalam ekonomi?", options: ["Orang yang membuat barang", "Orang yang menyalurkan barang", "Orang yang menggunakan nilai barang"], ans: 2 },
+                { q: "Kegiatan menghasilkan barang atau jasa untuk memenuhi kebutuhan disebut...", options: ["Produksi", "Distribusi", "Konsumsi"], ans: 0 },
+                { q: "Apa tujuan utama manusia melakukan kegiatan ekonomi?", options: ["Untuk mencari musuh", "Untuk memenuhi kebutuhan hidupnya", "Untuk merusak kelestarian alam"], ans: 1 }
+            ],
+            reflection: "Kalau kamu jadi pedagang, bagaimana caramu menarik pembeli dengan jujur?"
+        },
+        misi5: {
+            title: "Misi 5: Pahlawan Solusi",
+            narrative: "Jadilah pahlawan dengan memberikan solusi cerdas untuk masalah ekonomi!",
+            objective: "Aku dapat menyusun solusi kreatif atas tantangan masalah ekonomi masyarakat.",
+            pairs: [
+                { id: "s1", source: "Harga Cabai Mahal", target: "Musim hujan merusak panen" },
+                { id: "s2", source: "Sampah Menumpuk", target: "Tidak ada pengelolaan sampah" },
+                { id: "s3", source: "Banyak Pengangguran", target: "Kurang lapangan kerja" },
+                { id: "s4", source: "Ikan Sulit Didapat", target: "Penangkapan berlebihan" }
+            ],
+            cases: [
+                { text: "Masalah: Hasil panen buah busuk karena tidak laku terjual. Petani rugi besar. Apa solusinya?", options: ["Dibiarkan saja sampai busuk", "Diolah menjadi keripik atau selai", "Dibuang ke sungai sekitar"], correct: 1 },
+                { text: "Masalah: Sungai desa kotor akibat sampah plastik rumah tangga. Lingkungan jadi bau. Apa solusinya?", options: ["Tutup hidung saat melintas", "Buat bank sampah dan daur ulang", "Pindah ke desa tetangga"], correct: 1 },
+                { text: "Masalah: Pemuda desa banyak menganggur karena tidak punya keahlian khusus. Apa solusinya?", options: ["Pelatihan keterampilan wirausaha", "Beri bantuan uang setiap hari", "Disuruh diam di rumah saja"], correct: 0 },
+                { text: "Masalah: Ikan di laut semakin sedikit karena penggunaan bom ikan. Apa solusinya?", options: ["Cari laut yang lebih jauh", "Tambah jumlah bom ikan", "Gunakan jaring ramah lingkungan"], correct: 2 }
+            ],
+            reflection: "Jika kamu pemimpin daerah, apa solusimu untuk mengatasi sampah yang menumpuk?"
+        }
+    };
+
+    // --- CORE LOGIC ---
+    const bgm = document.getElementById('bgm');
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSFX(t) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        if(t==='correct'){ o.type='sine'; o.frequency.setValueAtTime(600,audioCtx.currentTime); o.frequency.exponentialRampToValueAtTime(1200,audioCtx.currentTime+0.1); g.gain.setValueAtTime(0.2,audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.5); o.start(); o.stop(audioCtx.currentTime+0.5); }
+        else { o.type='sawtooth'; o.frequency.setValueAtTime(150,audioCtx.currentTime); g.gain.setValueAtTime(0.1,audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.01,audioCtx.currentTime+0.3); o.start(); o.stop(audioCtx.currentTime+0.3); }
+    }
+    function toggleMusic() {
+        const btn = document.getElementById('music-btn');
+        if(bgm.paused){ bgm.play(); btn.innerHTML="🔊"; } else { bgm.pause(); btn.innerHTML="🔇"; }
+    }
+
+    // --- NAVIGATION ---
+    function confirmHome() {
+        if(state.currentLevel === 0) return; 
+        if(confirm("Yakin ingin kembali ke menu utama? Progres level ini akan hilang.")) {
+            state.subStep = 0; state.m2_step = 0;
+            showMainMenu();
+        }
+    }
+
+    function showMainMenu() {
+        state.currentLevel = 0;
+        document.getElementById('level-title').innerText = "Menu Utama";
+        document.getElementById('content-area').innerHTML = `
+            <div class="title-screen">
+                <img src="${logoUrl}" class="logo-img">
+                <div class="intro-box">
+                    <h2 style="color:var(--accent); font-family:'Fredoka One'; margin:0 0 10px 0; font-size:1.5rem;">Halo Petualang Cilik! 🌏✨</h2>
+                    <p style="font-size:0.95rem; line-height:1.4;">Selamat datang di <strong>Ekspedisi Ekonomi Nusantara</strong>!</p>
+                    <p style="font-size:0.9rem; margin-top:8px; line-height:1.3;">Siapkan dirimu menjelajahi kepulauan Indonesia. Misi rahasia menantimu: mengungkap bagaimana masyarakat bekerja keras memenuhi kebutuhan hidup sehari-hari.</p>
+                </div>
+                <button class="btn" onclick="showNameInput()">MULAI PETUALANGAN</button>
+            </div>
+        `;
+    }
+
+    function showNameInput() {
+        document.getElementById('content-area').innerHTML = `
+            <div class="title-screen">
+                <div class="intro-box" style="max-width:500px;">
+                    <h2 style="font-family:'Fredoka One'; color:var(--accent); margin:0 0 20px 0;">DATA PETUALANG</h2>
+                    <input type="text" id="p-name" class="name-input" placeholder="Nama Lengkap">
+                    <input type="text" id="p-school" class="name-input" placeholder="Asal Sekolah">
+                    <br>
+                    <button class="btn btn-green" onclick="processStart()">BERANGKAT!</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function processStart() {
+        const n = document.getElementById('p-name').value.trim(), s = document.getElementById('p-school').value.trim();
+        if(!n || !s){ alert("Mohon lengkapi Nama dan Sekolah!"); return; }
+        state.playerName=n; state.playerSchool=s; bgm.play().catch(()=>{}); showMap();
+    }
+
+    function showMap() {
+        state.currentLevel = 0;
+        document.getElementById('level-title').innerText = "Peta Nusantara";
+        const content = document.getElementById('content-area');
+        content.innerHTML = `<div class="map-container" id="map-area"></div>`;
+        for(let i=1;i<=5;i++){
+            let status = (i <= state.unlockedLevel) ? 'unlocked' : 'locked';
+            if(i < state.unlockedLevel || state.unlockedLevel > 5) status += ' completed';
+            let pin = document.createElement('div'); pin.className = `mission-pin ${status}`; pin.id = `pin-${i}`; pin.innerHTML = i;
+            if(status.includes('unlocked')) pin.onclick = () => showBriefing(i);
+            let lbl = document.createElement('div'); lbl.className='pin-label'; lbl.innerText=`Misi ${i}`;
+            pin.appendChild(lbl); document.getElementById('map-area').appendChild(pin);
+        }
+        // Atur posisi pin
+        document.getElementById('pin-1').style.left="8%"; document.getElementById('pin-1').style.top="25%";
+        document.getElementById('pin-2').style.left="22%"; document.getElementById('pin-2').style.top="70%";
+        document.getElementById('pin-3').style.left="58%"; document.getElementById('pin-3').style.top="60%";
+        document.getElementById('pin-4').style.left="85%"; document.getElementById('pin-4').style.top="35%";
+        document.getElementById('pin-5').style.left="92%"; document.getElementById('pin-5').style.top="70%";
+        renderBadges();
+    }
+
+    function showBriefing(lvl) {
+        const d = Object.values(gameData)[lvl-1];
+        showModalCustom(`<img src="${missionImages[lvl-1]}" style="width:100px;"><h2 style="font-family:'Fredoka One'; color:var(--accent); margin:10px 0;">${d.title}</h2><div style="text-align:left; background:#FFF8E1; padding:15px; border-radius:15px; border-left: 5px solid var(--accent); max-height:200px; overflow-y:auto;"><p><strong>Narasi:</strong><br>${d.narrative}</p><hr style="border:1px dashed #ddd;"><p><strong>Tujuan:</strong> ${d.objective}</p></div><button class="btn btn-green" onclick="closeModal(); startLevel(${lvl})">LAKSANAKAN!</button>`);
+    }
+
+    function startLevel(lvl) {
+        state.currentLevel=lvl; state.subStep=0; state.matchesFound=0; state.m2_step=0;
+        document.getElementById('level-title').innerText = Object.values(gameData)[lvl-1].title;
+        document.getElementById('content-area').innerHTML = `<div id="play-wrapper"></div>`;
+        if(lvl===1){ state.shuffledItems=[...gameData.misi1.items].sort(()=>Math.random()-0.5); renderM1(); }
+        else if(lvl===2) renderM2(); else if(lvl===3) renderM3(); else if(lvl===4) renderM4A1(); else if(lvl===5) renderM5A1();
+    }
+
+    // --- MISSION RENDERERS ---
+    function renderM1() {
+        const items = state.shuffledItems; if(state.subStep>=items.length){ levelComplete(); return; }
+        const item = items[state.subStep];
+        document.getElementById('play-wrapper').innerHTML = `
+            <div class="game-instruction">Misi 1: Tarik kartu ke keranjang! (${state.subStep+1}/10)</div>
+            <div class="card-item" id="card-m1" data-type="${item.type}">${item.text}</div>
+            <div class="buckets-container">
+                <div class="bucket target-m1" data-target="Produksi" style="--color:#FFA000;" data-label="Produksi">
+                    <img src="https://iili.io/q2T0M0B.png" class="bucket-icon-img" alt="Produksi">
+                </div>
+                <div class="bucket target-m1" data-target="Distribusi" style="--color:#1976D2;" data-label="Distribusi">
+                    <img src="https://iili.io/q2T0VUP.png" class="bucket-icon-img" alt="Distribusi">
+                </div>
+                <div class="bucket target-m1" data-target="Konsumsi" style="--color:#388E3C;" data-label="Konsumsi">
+                    <img src="https://iili.io/q2T0XJ1.png" class="bucket-icon-img" alt="Konsumsi">
+                </div>
+            </div>
+            <div class="spacer-bottom"></div>`;
+        initDrag(document.getElementById('card-m1'), document.querySelectorAll('.target-m1'), (d,t) => {
+            if(d.dataset.type === t.dataset.target){ playSFX('correct'); state.totalCorrect++; state.totalScore+=2; showModal("Benar!","Bagus sekali! +2 Poin","success",()=>{state.subStep++; renderM1();}); }
+            else { playSFX('wrong'); showModal("Salah",`Seharusnya: <strong>${d.dataset.type}</strong>`,"error",()=>{state.subStep++; renderM1();}); }
+            updateScore();
+        });
+    }
+
+    function renderM2() {
+        const d = gameData.misi2.data; if(state.subStep>=d.length){ levelComplete(); return; }
+        const cur = d[state.subStep], isR = state.m2_step===0;
+        let opts = isR ? [...cur.roleOpts].sort(()=>Math.random()-0.5).map(o=>`<button class="option-btn" onclick="checkM2('${o}')">${o}</button>`).join('') : `<div style="display:flex;gap:15px;width:100%;justify-content:center;"><button class="btn btn-green" style="flex:1;background:#FFA000" onclick="checkM2('Barang')">📦 BARANG</button><button class="btn btn-green" style="flex:1;background:#1976D2" onclick="checkM2('Jasa')">🛠️ JASA</button></div>`;
+        document.getElementById('play-wrapper').innerHTML = `<div class="game-instruction">Profesi ${state.subStep+1}/10</div><div class="card-item" style="color:var(--accent)">${cur.name}</div><div class="intro-box"><h3>${isR ? `Apa peran dari ${cur.name}?` : `Apa hasil produksinya?`}</h3><div class="option-grid">${opts}</div></div><div class="spacer-bottom"></div>`;
+    }
+    function checkM2(ans) {
+        const cur = gameData.misi2.data[state.subStep];
+        if(state.m2_step===0){ if(ans===cur.role){ playSFX('correct'); state.totalCorrect++; state.totalScore+=1; state.m2_step=1; renderM2(); } else { playSFX('wrong'); showModal("Kurang Tepat","Perannya adalah: " + cur.role,"error",()=>{state.m2_step=1; renderM2();}); } }
+        else { if(ans===cur.type){ playSFX('correct'); state.totalCorrect++; state.totalScore+=1; showModal("Benar!","Hebat! +1 Poin","success",()=>{state.m2_step=0; state.subStep++; renderM2();}); } else { playSFX('wrong'); showModal("Kurang Tepat",`Hasilnya adalah: ${cur.type}`,"error",()=>{state.m2_step=0; state.subStep++; renderM2();}); } }
+        updateScore();
+    }
+
+    function renderM3() {
+        const q = gameData.misi3.questions[state.subStep]; if(!q){ levelComplete(); return; }
+        document.getElementById('play-wrapper').innerHTML = `<div class="game-instruction">Kasus ${state.subStep+1}/4: Ramah lingkungan?</div><div class="card-item" style="max-width:600px">"${q.text}"</div><div style="display:flex;gap:20px"><button class="btn btn-green" style="width:160px;" onclick="checkM3(true)">YA ✅</button><button class="btn" style="background:#D32F2F; width:160px;" onclick="checkM3(false)">TIDAK ❌</button></div>`;
+    }
+    function checkM3(a){ const q = gameData.misi3.questions[state.subStep]; if(a===q.isEco){ playSFX('correct'); state.totalCorrect++; state.totalScore+=5; showModal("Benar!",q.reason + " +5 Poin","success",()=>{state.subStep++; renderM3();}); } else { playSFX('wrong'); showModal("Salah",q.reason,"error",()=>{state.subStep++; renderM3();}); } updateScore(); }
+    
+    function renderM4A1() {
+        const d = gameData.misi4.observations; if(state.subStep>=d.length){ state.subStep=0; renderM4A2(); return; }
+        const cur = d[state.subStep];
+        let f = cur.questions.map((q,i)=>`<div class="report-row"><label class="report-label">${q.label}</label><select id="obs-${i}" class="report-select">${q.options.map((o,idx)=>`<option value="${idx}">${o}</option>`).join('')}</select></div>`).join('');
+        document.getElementById('play-wrapper').innerHTML = `<div class="game-instruction">Aktivitas 1: Laporan Detektif (${state.subStep+1}/10)</div><div class="report-card"><h3>${cur.location}</h3><p style="font-style:italic; color:#555;">"${cur.scenario}"</p>${f}<button class="btn btn-green" style="width:100%; margin:10px 0 0 0;" onclick="checkM4A1()">Kirim Laporan</button></div><div class="spacer-bottom"></div>`;
+    }
+    function checkM4A1() {
+        const cur = gameData.misi4.observations[state.subStep]; let c = 0;
+        cur.questions.forEach((q,i)=>{ if(parseInt(document.getElementById(`obs-${i}`).value)===q.ans) c++; });
+        if(c===cur.questions.length){ playSFX('correct'); state.totalCorrect++; state.totalScore+=1; showModal("Akurat!","Laporan diterima. +1 Poin","success",()=>{state.subStep++; renderM4A1();}); }
+        else { playSFX('wrong'); showModal("Kurang Akurat","Poin 0 untuk laporan ini.","error",()=>{state.subStep++; renderM4A1();}); }
+        updateScore();
+    }
+    function renderM4A2() {
+        const q = gameData.misi4.quizQuestions[state.subStep]; if(!q){ levelComplete(); return; }
+        let opts = q.options.map((o,i)=>`<button class="option-btn" onclick="checkM4A2(${i})">${o}</button>`).join('');
+        document.getElementById('play-wrapper').innerHTML = `<div class="game-instruction">Aktivitas 2: Kuis Detektif (${state.subStep+1}/5)</div><div class="card-item">${q.q}</div><div class="option-grid">${opts}</div><div class="spacer-bottom"></div>`;
+    }
+    function checkM4A2(i){ if(i===gameData.misi4.quizQuestions[state.subStep].ans){ playSFX('correct'); state.totalCorrect++; state.totalScore+=2; showModal("Benar!","Hebat! +2 Poin","success",()=>{state.subStep++; renderM4A2();}); } else { playSFX('wrong'); showModal("Salah","Sayang sekali, poin 0.","error",()=>{state.subStep++; renderM4A2();}); } updateScore(); }
+
+    function renderM5A1() {
+        const p = gameData.misi5.pairs; let s = [...p].sort(()=>Math.random()-0.5);
+        document.getElementById('play-wrapper').innerHTML = `<div class="game-instruction">Aktivitas 1: Tarik Masalah ke Penyebab!</div><div class="dnd-container"><div class="dnd-col">${s.map(i=>`<div class="pair-draggable" data-id="${i.id}">${i.source}</div>`).join('')}</div><div class="dnd-col">${p.map(i=>`<div class="drop-zone" data-target="${i.id}">${i.target}</div>`).join('')}</div></div><div class="spacer-bottom"></div>`;
+        const drags = document.querySelectorAll('.pair-draggable'), zones = document.querySelectorAll('.drop-zone');
+        drags.forEach(d => { initDrag(d, zones, (dragged, dropped) => {
+            if(dragged.dataset.id === dropped.dataset.target){ playSFX('correct'); state.totalCorrect++; state.totalScore+=2.5; state.matchesFound++; dropped.innerHTML=""; dropped.appendChild(dragged); dragged.style.position='static'; dropped.classList.add('filled'); if(state.matchesFound>=4){ state.subStep=0; setTimeout(renderM5A2,1000); } }
+            else { playSFX('wrong'); showModal("Salah","Penyebab kurang tepat.","error"); }
+            updateScore();
+        }); });
+    }
+    function renderM5A2() {
+        const c = gameData.misi5.cases[state.subStep]; if(!c){ levelComplete(); return; }
+        let o = c.options.map((o,i)=>`<button class="option-btn" onclick="checkM5A2(${i})">${o}</button>`).join('');
+        document.getElementById('play-wrapper').innerHTML = `<div class="game-instruction">Aktivitas 2: Kasus (${state.subStep+1}/4)</div><div class="intro-box"><h3>${c.text}</h3></div><div class="option-grid">${o}</div><div class="spacer-bottom"></div>`;
+    }
+    function checkM5A2(i){ if(i===gameData.misi5.cases[state.subStep].correct){ playSFX('correct'); state.totalCorrect++; state.totalScore+=2.5; showModal("Benar!","Solusi cerdas. +2.5 Poin","success",()=>{state.subStep++; renderM5A2();}); } else { playSFX('wrong'); showModal("Kurang Tepat","Sayang sekali, poin 0.","error",()=>{state.subStep++; renderM5A2();}); } updateScore(); }
+
+    // --- UTILS & DATA SENDING ---
+    
+    function sendDataToSheet() {
+        if (!GOOGLE_SCRIPT_URL) {
+            alert("URL Google Script belum diatur oleh Guru.");
+            return;
+        }
+        
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'flex';
+
+        const data = {
+            nama: state.playerName,
+            sekolah: state.playerSchool,
+            skor: state.totalScore,
+            benar: state.totalCorrect,
+            reflections: state.reflections
+        };
+
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors", 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+        .then(() => {
+            overlay.style.display = 'none';
+            alert("✅ Nilai berhasil dikirim ke Ibu/Bapak Guru!");
+            document.getElementById("btn-kirim-nilai").disabled = true;
+            document.getElementById("btn-kirim-nilai").innerText = "Terkirim";
+        })
+        .catch(err => {
+            overlay.style.display = 'none';
+            console.error(err);
+            alert("⚠️ Gagal mengirim nilai. Coba periksa koneksi internet.");
+        });
+    }
+
+    function initDrag(el, targets, onDrop) {
+        let sx, sy, il, it;
+        const start = (e) => { const evt = e.touches ? e.touches[0] : e; sx=evt.clientX; sy=evt.clientY; const r=el.getBoundingClientRect(); il=r.left; it=r.top; el.style.width=r.width+'px'; el.style.position='fixed'; el.style.left=il+'px'; el.style.top=it+'px'; el.classList.add('dragging'); };
+        const move = (e) => { if(!el.classList.contains('dragging')) return; e.preventDefault(); const evt = e.touches ? e.touches[0] : e; el.style.left=(il+(evt.clientX-sx))+'px'; el.style.top=(it+(evt.clientY-sy))+'px'; };
+        const end = (e) => { if(!el.classList.contains('dragging')) return; el.classList.remove('dragging'); const r=el.getBoundingClientRect(); const cx=r.left+r.width/2, cy=r.top+r.height/2; el.style.display='none'; let b=document.elementFromPoint(cx,cy); el.style.display='block'; let target=null; targets.forEach(t=>{if(t.contains(b)||t===b) target=t;}); if(target && !target.classList.contains('filled')) onDrop(el, target); else { el.style.position='static'; el.style.width='100%'; } };
+        el.addEventListener('mousedown', start); el.addEventListener('touchstart', start); window.addEventListener('mousemove', move); window.addEventListener('touchmove', move, {passive:false}); window.addEventListener('mouseup', end); window.addEventListener('touchend', end);
+    }
+    function showModalCustom(h) { document.getElementById('modal-content').innerHTML = h; document.getElementById('modal').style.display = 'flex'; }
+    function showModal(t,m,type,cb) {
+        const modal = document.getElementById('modal'), content = document.getElementById('modal-content');
+        if(type==='badge_award'){ const bi = state.currentLevel-1; content.innerHTML = `<img src="${badgeImages[bi]}" class="badge-award-img"><h2 style="font-family:'Fredoka One'; color:var(--secondary); margin:0;">MISI SELESAI!</h2><p>Lencana berhasil didapatkan!</p><button class="btn btn-green" id="m-ok">Lanjut</button>`; }
+        else { content.innerHTML = `<div style="font-size:3rem;">${type==='success'?'🌟':'⚠️'}</div><h2 style="font-family:'Fredoka One'; margin:5px 0;">${t}</h2><p style="font-size:1.1rem; line-height:1.4;">${m}</p>${type==='reflection'?'<textarea id="ref-val" class="reflection-textarea" placeholder="Tulis refleksimu di sini..."></textarea>':''}<button class="btn" id="m-ok">OK</button>`; }
+        modal.style.display = 'flex'; 
+        
+        const btn = document.getElementById('m-ok');
+        // Cloning hack to remove old listeners
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.onclick = () => {
+            const refInput = document.getElementById('ref-val');
+            const val = refInput ? refInput.value : null;
+            modal.style.display='none'; 
+            if(cb) cb(val);
+        };
+    }
+    function closeModal(){ document.getElementById('modal').style.display='none'; }
+    function updateScore(){ document.getElementById('current-score').innerText = state.totalScore; }
+    function renderBadges() { const c = document.getElementById('badges-container'); c.innerHTML=''; for(let i=0;i<5;i++){ let earned = (state.unlockedLevel > i+1) || state.unlockedLevel>5; c.innerHTML+=`<div class="badge-slot"><img src="${badgeImages[i]}" class="badge-img-small ${earned?'':'grayscale'}"></div>`; } }
+    
+    function levelComplete(){ 
+        const d = Object.values(gameData)[state.currentLevel-1]; 
+        showModal("Refleksi", d.reflection, 'reflection', (val) => { 
+            // Simpan refleksi ke state
+            if(val) state.reflections['misi'+state.currentLevel] = val;
+            
+            if(state.currentLevel===state.unlockedLevel) state.unlockedLevel++; 
+            renderBadges(); 
+            setTimeout(()=>showModal("","","badge_award",()=>{ if(state.unlockedLevel>5)showVictory(); else showMap(); }), 300); 
+        }); 
+    }
+    
+    function toggleFullScreen() { if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    
+    function showVictory() {
+        document.getElementById('level-title').innerText = "Sertifikat Kelulusan";
+        document.getElementById('content-area').innerHTML = `
+            <div id="play-wrapper">
+                <div class="cert-box">
+                    <img src="${logoUrl}" style="width:130px; margin-bottom:10px;">
+                    <h1 style="font-family:'Fredoka One'; color:var(--accent); margin:0; font-size:1.8rem;">SERTIFIKAT KEAHLIAN</h1>
+                    <p style="margin:5px 0;">Diberikan Kepada Petualang Hebat:</p>
+                    <h2 style="color:var(--text-dark); border-bottom:3px solid var(--primary); display:inline-block; padding:0 30px; margin:10px 0;">${state.playerName}</h2>
+                    <p style="font-weight:bold; color:#666; margin:0;">${state.playerSchool}</p>
+                    <div class="cert-score">
+                        <p style="font-size:1.1rem; margin:5px 0;">Jawaban Benar: <span style="color:var(--secondary); font-weight:bold;">${state.totalCorrect}</span></p>
+                        <p style="font-size:1.8rem; margin:10px 0; color:var(--accent); font-family:'Fredoka One';">TOTAL SKOR: ${state.totalScore}</p>
+                    </div>
+                    <div style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;">
+                        ${badgeImages.map(img=>`<img src="${img}" style="width:48px;">`).join('')}
+                    </div>
+                    <p style="font-size:0.9rem; font-style:italic; margin-bottom:15px;">"Selamat! Kamu telah menjadi Pahlawan Ekonomi Nusantara!"</p>
+                    <button id="btn-kirim-nilai" class="btn btn-blue" onclick="sendDataToSheet()">Kirim Nilai ke Guru</button>
+                    <button class="btn btn-green" onclick="location.reload()">Main Lagi</button>
+                </div>
+            </div>
+        `;
+    }
+
+    showMainMenu();
+</script>
+</body>
+</html>
+
+
